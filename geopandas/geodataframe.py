@@ -566,8 +566,11 @@ class GeoDataFrame(GeoPandasBase, DataFrame):
 
         # Process spatial component
         def merge_geometries(block):
-            merged_geom = block.unary_union
-            return merged_geom
+            try:
+                return block.unary_union
+            except ValueError:
+                # could be a self-intersection, try buffering the feature
+                return block.buffer(0).unary_union
 
         g = self.groupby(by=by, group_keys=False)[self.geometry.name].agg(merge_geometries)
 
